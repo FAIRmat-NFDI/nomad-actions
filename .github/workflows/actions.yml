@@ -1,0 +1,43 @@
+name: install-and-test-workflow
+
+on: [push]
+
+env:
+  UV_VERSION: 0.9
+  PYTHON_VERSION: 3.12
+  UV_SYSTEM_PYTHON: true
+
+jobs:
+  install-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+      with:
+          version: ${{ env.UV_VERSION }}
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+          python-version: ${{ env.PYTHON_VERSION }}
+    - name: Install dependencies
+      run: |
+        uv sync --all-extras
+    - name: Test with pytest
+      run: |
+        uv run --with coverage coverage run -m pytest -sv
+    - name: Submit to coveralls
+      continue-on-error: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        uv run --with coveralls coveralls --service=github
+
+  ruff-linting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/ruff-action@v3
+      - run: ruff check .
+      # Uncomment the following line to enable format check
+      # - run: ruff format --check .
