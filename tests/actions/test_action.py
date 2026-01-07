@@ -2,9 +2,9 @@ import pytest
 from temporalio.testing import WorkflowEnvironment
 from temporalio.worker import Worker
 
-from nomad_actions.actions.simple_action.activities import greet
-from nomad_actions.actions.simple_action.models import SimpleWorkflowInput
-from nomad_actions.actions.simple_action.workflows import SimpleWorkflow
+from nomad_actions.actions.entries.activities import search
+from nomad_actions.actions.entries.models import SearchWorkflowInput
+from nomad_actions.actions.entries.workflows import SearchWorkflow
 
 
 @pytest.mark.asyncio
@@ -14,15 +14,15 @@ async def test_simple_workflow():
         async with Worker(
             env.client,
             task_queue=task_queue,
-            workflows=[SimpleWorkflow],
-            activities=[greet],
+            workflows=[SearchWorkflow],
+            activities=[search],
         ):
             result = await env.client.execute_workflow(
-                SimpleWorkflow.run,
-                SimpleWorkflowInput(
+                SearchWorkflow.run,
+                SearchWorkflowInput(
                     upload_id='upload_id',
                     user_id='user_id',
-                    name='World',
+                    query={},
                 ),
                 id='test-workflow',
                 task_queue=task_queue,

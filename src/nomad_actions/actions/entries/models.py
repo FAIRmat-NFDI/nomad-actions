@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 
-class SimpleWorkflowInput(BaseModel):
+class SearchWorkflowInput(BaseModel):
     """Input model for the simple workflow"""
 
     upload_id: str = Field(
@@ -12,4 +12,4 @@ class SimpleWorkflowInput(BaseModel):
         ..., description='Unique identifier for the user who initiated the workflow.'
     )
 
-    name: str = Field(..., description='The name to greet.')
+    query: dict = Field(..., description='Query for extracting entries.')
