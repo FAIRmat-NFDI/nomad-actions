@@ -10,8 +10,10 @@ class SearchActionEntryPoint(ActionEntryPoint):
         from nomad.actions import Action
 
         from nomad_actions.actions.entries.activities import (
+            cleanup_artifacts,
             consolidate_output_files,
             create_artifact_subdirectory,
+            save_dataset,
             search,
         )
         from nomad_actions.actions.entries.workflows import SearchWorkflow
@@ -19,7 +21,13 @@ class SearchActionEntryPoint(ActionEntryPoint):
         return Action(
             task_queue=self.task_queue,
             workflow=SearchWorkflow,
-            activities=[create_artifact_subdirectory, search, consolidate_output_files],
+            activities=[
+                create_artifact_subdirectory,
+                search,
+                consolidate_output_files,
+                save_dataset,
+                cleanup_artifacts,
+            ],
         )
 
 

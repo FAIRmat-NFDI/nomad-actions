@@ -99,5 +99,18 @@ class ConsolidateOutputFilesInput(BaseModel):
     )
 
 
-class SearchWorkflowOutput(BaseModel):
-    data: dict
+class SaveDatasetInput(BaseModel):
+    upload_id: str = Field(
+        ...,
+        description='Unique identifier for the upload where dataset will be saved.',
+    )
+    user_id: str = Field(
+        ..., description='Unique identifier for the user saving the dataset.'
+    )
+    source_path: str = Field(..., description='Path to the source file of dataset.')
+
+
+class CleanupArtifactsInput(BaseModel):
+    subdir_path: str = Field(
+        ..., description='Path to the subdirectory to be cleaned up.'
+    )

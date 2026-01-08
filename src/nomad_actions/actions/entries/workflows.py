@@ -5,13 +5,17 @@ from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
     from nomad_actions.actions.entries.activities import (
+        cleanup_artifacts,
         consolidate_output_files,
         create_artifact_subdirectory,
+        save_dataset,
         search,
     )
     from nomad_actions.actions.entries.models import (
+        CleanupArtifactsInput,
         ConsolidateOutputFilesInput,
         CreateArtifactSubdirectoryInput,
+        SaveDatasetInput,
         SearchInput,
         SearchWorkflowUserInput,
     )
@@ -30,7 +34,7 @@ class SearchWorkflow:
         artifact_subdirectory = await workflow.execute_activity(
             create_artifact_subdirectory,
             CreateArtifactSubdirectoryInput(subdir_name=workflow.info().workflow_id),
-            start_to_close_timeout=timedelta(minutes=1),
+            start_to_close_timeout=timedelta(minutes=10),
             retry_policy=retry_policy,
         )
         generated_file_paths = await workflow.execute_activity(
@@ -45,4 +49,20 @@ class SearchWorkflow:
             start_to_close_timeout=timedelta(minutes=30),
             retry_policy=retry_policy,
         )
-        return consolidated_file_path
+        saved_dataset_path = await workflow.execute_activity(
+            save_dataset,
+            SaveDatasetInput(
+                upload_id=data.upload_id,
+                user_id=data.user_id,
+                source_path=consolidated_file_path,
+            ),
+            start_to_close_timeout=timedelta(minutes=10),
+            retry_policy=retry_policy,
+        )
+        await workflow.execute_activity(
+            cleanup_artifacts,
+            CleanupArtifactsInput(subdir_path=artifact_subdirectory),
+            start_to_close_timeout=timedelta(minutes=10),
+            retry_policy=retry_policy,
+        )
+        return saved_dataset_path
