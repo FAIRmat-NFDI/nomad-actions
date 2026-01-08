@@ -25,7 +25,8 @@ class SearchWorkflowUserInput(BaseModel):
     )
     query: str = Field(
         ...,
-        description='Query for extracting entries.',
+        description='Query for extracting entries. Should be a valid dictionary '
+        'string. For example: \'{"entry_type": "ELNSample"}\'',
         json_schema_extra={
             'ui:widget': 'textarea',  # Explicitly request textarea widget
             'ui:options': {
@@ -35,7 +36,9 @@ class SearchWorkflowUserInput(BaseModel):
     )
     required: str | None = Field(
         None,
-        description='Required fields for filtering the search results.',
+        description='Required fields for filtering the search results. Should be a '
+        'valid dictionary with include and exclude lists. For example: '
+        '\'{"include": ["results*", "data.results*"], "exclude": ["results.method.name"]}\'',
         json_schema_extra={
             'ui:widget': 'textarea',  # Explicitly request textarea widget
             'ui:options': {
@@ -73,21 +76,20 @@ class SearchInput(BaseModel):
         cls, user_input: SearchWorkflowUserInput, /, output_dir
     ) -> 'SearchInput':
         """Convert from SearchWorkflowUserInput to SearchInput"""
-        print(user_input.query)
         query = ast.literal_eval(user_input.query)
-        # required = (
-        #     MetadataRequired.model_validate_json(user_input.required)
-        #     if user_input.required
-        #     else None
-        # )
-        pagination = MetadataPagination()  # Default pagination settings
+        required = (
+            MetadataRequired(**ast.literal_eval(user_input.required))
+            if user_input.required
+            else None
+        )
+        pagination = MetadataPagination()  # Use default pagination settings
 
         return cls(
             user_id=user_input.user_id,
             owner=user_input.owner,
             query=query,
             output_file_type=user_input.output_file_type,
-            required=None,
+            required=required,
             pagination=pagination,
             output_dir=output_dir,
         )
