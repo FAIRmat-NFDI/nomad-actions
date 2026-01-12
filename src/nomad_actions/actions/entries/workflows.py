@@ -8,30 +8,29 @@ with workflow.unsafe.imports_passed_through():
         cleanup_artifacts,
         consolidate_output_files,
         create_artifact_subdirectory,
-        save_dataset,
+        export_dataset_to_upload,
         search,
     )
     from nomad_actions.actions.entries.models import (
         CleanupArtifactsInput,
         ConsolidateOutputFilesInput,
         CreateArtifactSubdirectoryInput,
-        SaveDatasetInput,
+        ExportDatasetInput,
+        ExportEntriesUserInput,
         SearchInput,
-        SearchUserInput,
     )
 
 
 @workflow.defn
-class SearchWorkflow:
+class ExportEntriesWorkflow:
     @workflow.run
-    async def run(self, data: SearchUserInput) -> str:
+    async def run(self, data: ExportEntriesUserInput) -> str:
         """
-        Workflow to perform a search action and save the results as a dataset in
-        the specified upload.
+        Workflow to search entries and export them into a datafile in the specified
+        upload.
 
         Args:
-            data (SearchWorkflowUserInput): Input data for the search workflow.
-
+            data (ExportEntriesUserInput): Input data for the export entries workflow.
         Returns:
             str: Path to the saved dataset in the upload's `raw` folder.
         """
@@ -60,8 +59,8 @@ class SearchWorkflow:
             retry_policy=retry_policy,
         )
         saved_dataset_path = await workflow.execute_activity(
-            save_dataset,
-            SaveDatasetInput(
+            export_dataset_to_upload,
+            ExportDatasetInput(
                 upload_id=data.upload_id,
                 user_id=data.user_id,
                 source_path=consolidated_file_path,

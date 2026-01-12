@@ -5,7 +5,7 @@ with workflow.unsafe.imports_passed_through():
     from nomad.config.models.plugins import ActionEntryPoint
 
 
-class SearchActionEntryPoint(ActionEntryPoint):
+class ExportEntriesActionEntryPoint(ActionEntryPoint):
     def load(self):
         from nomad.actions import Action
 
@@ -13,26 +13,27 @@ class SearchActionEntryPoint(ActionEntryPoint):
             cleanup_artifacts,
             consolidate_output_files,
             create_artifact_subdirectory,
-            save_dataset,
+            export_dataset_to_upload,
             search,
         )
-        from nomad_actions.actions.entries.workflows import SearchWorkflow
+        from nomad_actions.actions.entries.workflows import ExportEntriesWorkflow
 
         return Action(
             task_queue=self.task_queue,
-            workflow=SearchWorkflow,
+            workflow=ExportEntriesWorkflow,
             activities=[
                 create_artifact_subdirectory,
                 search,
                 consolidate_output_files,
-                save_dataset,
+                export_dataset_to_upload,
                 cleanup_artifacts,
             ],
         )
 
 
-search_action_entry_point = SearchActionEntryPoint(
-    name='SearchAction',
-    description='An action to search for entries based on a given query.',
+export_entries_action_entry_point = ExportEntriesActionEntryPoint(
+    name='Export Entries Action',
+    description='An action to search entries and export them into a datafile in the '
+    'specified upload.',
     task_queue=TaskQueue.CPU,
 )

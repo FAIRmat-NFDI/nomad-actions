@@ -45,7 +45,7 @@ class OutputSettings(BaseModel):
     )
 
 
-class SearchUserInput(BaseModel):
+class ExportEntriesUserInput(BaseModel):
     upload_id: str = Field(
         ...,
         description='Unique identifier for the upload associated with the workflow.',
@@ -78,9 +78,9 @@ class SearchInput(BaseModel):
 
     @classmethod
     def from_user_input(
-        cls, user_input: SearchUserInput, /, output_dir
+        cls, user_input: ExportEntriesUserInput, /, output_dir
     ) -> 'SearchInput':
-        """Convert from SearchWorkflowUserInput to SearchInput"""
+        """Convert from ExportEntriesUserInput to SearchInput"""
         query = ast.literal_eval(user_input.search_settings.query)
         required = (
             MetadataRequired(**ast.literal_eval(user_input.search_settings.required))
@@ -106,7 +106,7 @@ class ConsolidateOutputFilesInput(BaseModel):
     )
 
 
-class SaveDatasetInput(BaseModel):
+class ExportDatasetInput(BaseModel):
     upload_id: str = Field(
         ...,
         description='Unique identifier for the upload where dataset will be saved.',
