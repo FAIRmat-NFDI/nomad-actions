@@ -17,14 +17,14 @@ with workflow.unsafe.imports_passed_through():
         CreateArtifactSubdirectoryInput,
         SaveDatasetInput,
         SearchInput,
-        SearchWorkflowUserInput,
+        SearchUserInput,
     )
 
 
 @workflow.defn
 class SearchWorkflow:
     @workflow.run
-    async def run(self, data: SearchWorkflowUserInput) -> str:
+    async def run(self, data: SearchUserInput) -> str:
         """
         Workflow to perform a search action and save the results as a dataset in
         the specified upload.
