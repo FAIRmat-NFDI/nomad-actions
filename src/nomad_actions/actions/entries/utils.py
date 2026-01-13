@@ -53,18 +53,23 @@ def consolidate_files(input_file_paths: list[str], output_file_path: str):
         output_file_path (str): Path for the consolidated output file.
     """
     if output_file_path.endswith('parquet'):
-        tables = []
-        for file_path in input_file_paths:
-            table = pq.read_table(file_path)
-            tables.append(table)
-        combined_table = pa.concat_tables(tables)
-        pq.write_table(
-            combined_table,
+        import pyarrow.dataset as ds
+
+        # Creates a logical dataset from the input files, not loading all data into
+        # memory. Also, unifies the schema across the files.
+        dataset = ds.dataset(input_file_paths, format='parquet')
+
+        # Write the dataset to a single Parquet file in batches
+        with pq.ParquetWriter(
             output_file_path,
+            dataset.schema,
             compression='zstd',  # for better compression for consolidated file
             compression_level=3,
             use_dictionary=True,
-        )
+        ) as writer:
+            for batch in dataset.to_batches():
+                writer.write_batch(batch)
+
     elif output_file_path.endswith('csv'):
         import pandas as pd
 
