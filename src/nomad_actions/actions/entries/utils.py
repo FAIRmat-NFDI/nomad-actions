@@ -1,4 +1,3 @@
-import os
 import pyarrow as pa
 import pyarrow.parquet as pq
 from nomad.utils import dict_to_dataframe
