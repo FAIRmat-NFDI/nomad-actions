@@ -9,10 +9,15 @@ from nomad_actions.actions.entries.activities import (
     export_dataset_to_upload,
     search,
 )
-from nomad_actions.actions.entries.models import ExportEntriesUserInput
+from nomad_actions.actions.entries.models import (
+    ExportEntriesUserInput,
+    OutputSettings,
+    SearchSettings,
+)
 from nomad_actions.actions.entries.workflows import ExportEntriesWorkflow
 
 
+@pytest.mark.skip(reason='Requires infra support like DB connection.')
 @pytest.mark.asyncio
 async def test_simple_workflow():
     task_queue = 'test-simple-workflow'
@@ -34,7 +39,8 @@ async def test_simple_workflow():
                 ExportEntriesUserInput(
                     upload_id='upload_id',
                     user_id='user_id',
-                    query={},
+                    search_settings=SearchSettings(query='{}'),
+                    output_settings=OutputSettings(),
                 ),
                 id='test-workflow',
                 task_queue=task_queue,
