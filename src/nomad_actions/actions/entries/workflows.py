@@ -57,8 +57,7 @@ class ExportEntriesWorkflow:
         while True:
             search_counter += 1
             search_input.output_file_path = (
-                f'{artifact_subdirectory}/{search_counter}'
-                f'.{data.output_settings.output_file_type}'
+                f'{artifact_subdirectory}/{search_counter}.{data.output_file_type}'
             )
             search_output = await workflow.execute_activity(
                 search,
