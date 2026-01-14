@@ -17,9 +17,9 @@ class SearchSettings(BaseModel):
         ...,
         description="""Query for extracting entries. Should be a valid dictionary
         string. For example:
-        \'{
-            "entry_type": "ELNSample"
-        }\'""",
+        {
+            'entry_type': 'ELNSample'
+        }""",
         # json_schema_extra={
         #     'ui:widget': 'textarea',  # Explicitly request textarea widget
         #     'ui:options': {
@@ -27,21 +27,15 @@ class SearchSettings(BaseModel):
         #     },
         # },
     )
-    required: str = Field(
-        '',
-        description="""Required fields for filtering the search results. Should be a
-        valid dictionary with include and exclude lists. For example:
-        \'{
-            "include": ["results*", "data.results*"],
-            "exclude": ["results.method.name"]
-        }\'""",
+    required_include: list[str] = Field(
+        None,
+        description='List of fields to include in the search results. For example: '
+        'results*, data.results*',
     )
-
-
-class OutputSettings(BaseModel):
-    output_file_type: OutputFileTypeLiteral = Field(
-        'parquet',
-        description='Type of the output file to be generated.',
+    required_exclude: list[str] = Field(
+        None,
+        description='List of fields to exclude from the search results. For example: '
+        'results.method.method_name',
     )
 
 
@@ -53,8 +47,11 @@ class ExportEntriesUserInput(BaseModel):
     user_id: str = Field(
         ..., description='Unique identifier for the user who initiated the workflow.'
     )
+    output_file_type: OutputFileTypeLiteral = Field(
+        'parquet',
+        description='Type of the output file to be generated.',
+    )
     search_settings: SearchSettings
-    output_settings: OutputSettings
 
 
 class CreateArtifactSubdirectoryInput(BaseModel):
@@ -83,13 +80,30 @@ class SearchInput(BaseModel):
         output_file_path: str,
     ) -> 'SearchInput':
         """Convert from ExportEntriesUserInput to SearchInput"""
-        query = ast.literal_eval(user_input.search_settings.query)
-        required = (
-            MetadataRequired(**ast.literal_eval(user_input.search_settings.required))
-            if user_input.search_settings.required
-            else None
-        )
-        pagination = MetadataPagination()  # Use default pagination settings
+
+        def _clean_field(field: str) -> str:
+            """
+            Removes trailing whitespaces and inverted commas
+            """
+            return field.strip().strip("'").strip('"')
+
+        query = ast.literal_eval(_clean_field(user_input.search_settings.query))
+
+        required = MetadataRequired()
+        if user_input.search_settings.required_include is not None:
+            include = [
+                _clean_field(field)
+                for field in user_input.search_settings.required_include
+            ]
+            required.include = include if include else None
+        if user_input.search_settings.required_exclude:
+            exclude = [
+                _clean_field(field)
+                for field in user_input.search_settings.required_exclude
+            ]
+            required.exclude = exclude if exclude else None
+
+        pagination = MetadataPagination(page_size=1000)
 
         return cls(
             user_id=user_input.user_id,

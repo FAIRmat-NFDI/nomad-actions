@@ -57,14 +57,13 @@ class ExportEntriesWorkflow:
         while True:
             search_counter += 1
             search_input.output_file_path = (
-                f'{artifact_subdirectory}/{search_counter}'
-                f'.{data.output_settings.output_file_type}'
+                f'{artifact_subdirectory}/{search_counter}.{data.output_file_type}'
             )
             search_output = await workflow.execute_activity(
                 search,
                 search_input,
                 activity_id=f'search-activity-{search_counter}',
-                start_to_close_timeout=timedelta(minutes=120),
+                start_to_close_timeout=timedelta(hours=2),
                 retry_policy=retry_policy,
             )
             generated_file_paths.append(search_input.output_file_path)
@@ -78,7 +77,7 @@ class ExportEntriesWorkflow:
         consolidated_file_path = await workflow.execute_activity(
             consolidate_output_files,
             ConsolidateOutputFilesInput(generated_file_paths=generated_file_paths),
-            start_to_close_timeout=timedelta(minutes=30),
+            start_to_close_timeout=timedelta(hours=2),
             retry_policy=retry_policy,
         )
 
@@ -89,14 +88,14 @@ class ExportEntriesWorkflow:
                 user_id=data.user_id,
                 source_path=consolidated_file_path,
             ),
-            start_to_close_timeout=timedelta(minutes=10),
+            start_to_close_timeout=timedelta(hours=2),
             retry_policy=retry_policy,
         )
 
         await workflow.execute_activity(
             cleanup_artifacts,
             CleanupArtifactsInput(subdir_path=artifact_subdirectory),
-            start_to_close_timeout=timedelta(minutes=10),
+            start_to_close_timeout=timedelta(hours=2),
             retry_policy=retry_policy,
         )
 
