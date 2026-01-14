@@ -103,7 +103,7 @@ class SearchInput(BaseModel):
             ]
             required.exclude = exclude if exclude else None
 
-        pagination = MetadataPagination()  # Use default pagination settings
+        pagination = MetadataPagination(page_size=1000)
 
         return cls(
             user_id=user_input.user_id,
