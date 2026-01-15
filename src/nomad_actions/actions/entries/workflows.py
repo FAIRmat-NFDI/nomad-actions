@@ -50,6 +50,9 @@ class ExportEntriesWorkflow:
 
         search_counter = 0
         generated_file_paths = []
+        search_start_times = []
+        search_end_times = []
+        total_num_entries = 0
         search_input = SearchInput.from_user_input(
             data,
             output_file_path='',  # Placeholder, will be set in loop
@@ -68,6 +71,9 @@ class ExportEntriesWorkflow:
                 retry_policy=retry_policy,
             )
             generated_file_paths.append(search_input.output_file_path)
+            search_start_times.append(search_output.search_start_time)
+            search_end_times.append(search_output.search_end_time)
+            total_num_entries += search_output.num_entries
             if search_output.pagination_next_page_after_value is None:
                 break
             # Update pagination for next iteration

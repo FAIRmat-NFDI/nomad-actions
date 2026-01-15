@@ -47,6 +47,8 @@ async def search(data: SearchInput) -> SearchOutput:
     Returns:
         SearchOutput: Output data from the search activity.
     """
+    from datetime import datetime, timezone
+
     from nomad.search import search as nomad_search
 
     from nomad_actions.actions.entries.utils import (
@@ -70,6 +72,8 @@ async def search(data: SearchInput) -> SearchOutput:
             '.csv, or .json extensions.'
         )
 
+    output = SearchOutput()
+    output.search_start_time = datetime.now(timezone.utc).isoformat()
     response = nomad_search(
         user_id=data.user_id,
         owner=data.owner,
@@ -78,12 +82,16 @@ async def search(data: SearchInput) -> SearchOutput:
         pagination=data.pagination,
         aggregations={},  # aggregations support can be added later
     )
+    output.search_end_time = datetime.now(timezone.utc).isoformat()
+    output.num_entries = len(response.data)
+
     write_dataset_file(path=data.output_file_path, data=response.data)
-    output = SearchOutput()
+
     if response.pagination and response.pagination.next_page_after_value:
         output.pagination_next_page_after_value = (
             response.pagination.next_page_after_value
         )
+
     logger.info(
         f'Page {response.pagination.page} containing {len(response.data)} results '
         f'written to output file {data.output_file_path}.'

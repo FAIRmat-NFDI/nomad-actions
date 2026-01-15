@@ -135,6 +135,15 @@ class SearchOutput(BaseModel):
         description='The next_page_after_value from pagination, if more results are '
         'available.',
     )
+    num_entries: int = Field(
+        None, description='Number of entries in the search results.'
+    )
+    search_start_time: str | None = Field(
+        None, description='Timestamp when the search started.'
+    )
+    search_end_time: str | None = Field(
+        None, description='Timestamp when the search completed.'
+    )
 
 
 class ConsolidateOutputFilesInput(BaseModel):
