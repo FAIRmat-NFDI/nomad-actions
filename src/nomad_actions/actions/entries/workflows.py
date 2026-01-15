@@ -16,6 +16,7 @@ with workflow.unsafe.imports_passed_through():
         ConsolidateOutputFilesInput,
         CreateArtifactSubdirectoryInput,
         ExportDatasetInput,
+        ExportDatasetMetadata,
         ExportEntriesUserInput,
         SearchInput,
     )
@@ -93,9 +94,15 @@ class ExportEntriesWorkflow:
         saved_dataset_path = await workflow.execute_activity(
             export_dataset_to_upload,
             ExportDatasetInput(
-                upload_id=data.upload_id,
-                user_id=data.user_id,
-                source_path=consolidated_file_path,
+                source_paths=generated_file_paths,
+                metadata=ExportDatasetMetadata(
+                    num_entries=total_num_entries,
+                    search_start_time=search_start_times[0]
+                    if search_start_times
+                    else '',
+                    search_end_time=search_end_times[-1] if search_end_times else '',
+                    user_input=data,
+                ),
             ),
             start_to_close_timeout=timedelta(hours=2),
             retry_policy=retry_policy,

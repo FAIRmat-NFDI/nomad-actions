@@ -152,15 +152,31 @@ class ConsolidateOutputFilesInput(BaseModel):
     )
 
 
-class ExportDatasetInput(BaseModel):
-    upload_id: str = Field(
+class ExportDatasetMetadata(BaseModel):
+    num_entries: int = Field(
         ...,
-        description='Unique identifier for the upload where dataset will be saved.',
+        description='Total number of entries combined in all exported dataset batches.',
     )
-    user_id: str = Field(
-        ..., description='Unique identifier for the user saving the dataset.'
+    search_start_time: str = Field(
+        ...,
+        description='Timestamp when the first search batch started.',
     )
-    source_path: str = Field(..., description='Path to the source file of dataset.')
+    search_end_time: str = Field(
+        ...,
+        description='Timestamp when the last search batch completed.',
+    )
+    user_input: ExportEntriesUserInput = Field(
+        ..., description='Original user input for the export entries workflow.'
+    )
+
+
+class ExportDatasetInput(BaseModel):
+    source_paths: list[str] = Field(
+        ..., description='Path to the source files of dataset.'
+    )
+    metadata: ExportDatasetMetadata | None = Field(
+        None, description='Metadata associated with the exported dataset.'
+    )
 
 
 class CleanupArtifactsInput(BaseModel):
