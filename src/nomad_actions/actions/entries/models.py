@@ -146,9 +146,10 @@ class SearchOutput(BaseModel):
     )
 
 
-class ConsolidateOutputFilesInput(BaseModel):
+class MergeOutputFilesInput(BaseModel):
     generated_file_paths: list[str] = Field(
-        ..., description='List of the generated file paths to be consolidated.'
+        ...,
+        description='List of the generated file paths to be merged into a single file.',
     )
 
 

@@ -6,14 +6,14 @@ from temporalio.common import RetryPolicy
 with workflow.unsafe.imports_passed_through():
     from nomad_actions.actions.entries.activities import (
         cleanup_artifacts,
-        consolidate_output_files,
+        merge_output_files,
         create_artifact_subdirectory,
         export_dataset_to_upload,
         search,
     )
     from nomad_actions.actions.entries.models import (
         CleanupArtifactsInput,
-        ConsolidateOutputFilesInput,
+        MergeOutputFilesInput,
         CreateArtifactSubdirectoryInput,
         ExportDatasetInput,
         ExportDatasetMetadata,
@@ -83,13 +83,13 @@ class ExportEntriesWorkflow:
             )
 
         if data.output_settings.merge_output_files:
-            consolidated_file_path = await workflow.execute_activity(
-                consolidate_output_files,
-                ConsolidateOutputFilesInput(generated_file_paths=generated_file_paths),
+            merged_file_path = await workflow.execute_activity(
+                merge_output_files,
+                MergeOutputFilesInput(generated_file_paths=generated_file_paths),
                 start_to_close_timeout=timedelta(hours=2),
                 retry_policy=retry_policy,
             )
-            generated_file_paths = [consolidated_file_path]
+            generated_file_paths = [merged_file_path]
 
         saved_dataset_path = await workflow.execute_activity(
             export_dataset_to_upload,

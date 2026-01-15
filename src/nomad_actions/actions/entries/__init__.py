@@ -11,7 +11,7 @@ class ExportEntriesActionEntryPoint(ActionEntryPoint):
 
         from nomad_actions.actions.entries.activities import (
             cleanup_artifacts,
-            consolidate_output_files,
+            merge_output_files,
             create_artifact_subdirectory,
             export_dataset_to_upload,
             search,
@@ -24,7 +24,7 @@ class ExportEntriesActionEntryPoint(ActionEntryPoint):
             activities=[
                 create_artifact_subdirectory,
                 search,
-                consolidate_output_files,
+                merge_output_files,
                 export_dataset_to_upload,
                 cleanup_artifacts,
             ],

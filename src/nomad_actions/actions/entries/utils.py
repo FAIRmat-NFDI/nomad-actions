@@ -60,12 +60,12 @@ def write_json_file(path: str, data: list[dict]):
         json.dump(data, f, indent=4)
 
 
-def consolidate_files(input_file_paths: list[str], output_file_path: str):
-    """Consolidates multiple Parquet, CSV, or JSON files into a single file.
+def merge_files(input_file_paths: list[str], output_file_path: str):
+    """Merges multiple Parquet, CSV, or JSON files into a single file.
 
     Args:
-        input_file_paths (list[str]): List of file paths to be consolidated.
-        output_file_path (str): Path for the consolidated output file.
+        input_file_paths (list[str]): List of file paths to be merged.
+        output_file_path (str): Path of the merged output file.
     """
     if output_file_path.endswith('parquet'):
         import pyarrow.dataset as ds
@@ -78,7 +78,7 @@ def consolidate_files(input_file_paths: list[str], output_file_path: str):
         with pq.ParquetWriter(
             output_file_path,
             dataset.schema,
-            compression='zstd',  # for better compression for consolidated file
+            compression='zstd',  # for better compression for merged file
             compression_level=3,
             use_dictionary=True,
         ) as writer:

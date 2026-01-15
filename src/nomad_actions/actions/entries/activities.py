@@ -5,7 +5,7 @@ from temporalio import activity
 
 from nomad_actions.actions.entries.models import (
     CleanupArtifactsInput,
-    ConsolidateOutputFilesInput,
+    MergeOutputFilesInput,
     CreateArtifactSubdirectoryInput,
     ExportDatasetInput,
     SearchInput,
@@ -101,26 +101,26 @@ async def search(data: SearchInput) -> SearchOutput:
 
 
 @activity.defn
-async def consolidate_output_files(data: ConsolidateOutputFilesInput) -> str:
+async def merge_output_files(data: MergeOutputFilesInput) -> str:
     """
-    Activity to consolidate multiple Parquet, CSV, or JSON files into a single file.
+    Activity to merge multiple Parquet, CSV, or JSON files into a single file.
 
     Args:
-        data (ConsolidateOutputFilesInput): Input data for consolidating files.
+        data (MergeOutputFilesInput): Input data for merging files.
 
     Returns:
-        str: Path to the consolidated output file.
+        str: Path of the merged output file.
     """
-    from nomad_actions.actions.entries.utils import consolidate_files
+    from nomad_actions.actions.entries.utils import merge_files
 
-    consolidated_file_path = os.path.join(
+    merged_file_path = os.path.join(
         os.path.dirname(data.generated_file_paths[0]),
         '1.' + data.generated_file_paths[0].split('.')[-1],
     )
 
-    consolidate_files(data.generated_file_paths, consolidated_file_path)
+    merge_files(data.generated_file_paths, merged_file_path)
 
-    return consolidated_file_path
+    return merged_file_path
 
 
 @activity.defn
