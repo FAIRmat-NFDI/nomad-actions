@@ -56,8 +56,6 @@ async def search(data: SearchInput) -> SearchOutput:
         write_parquet_file,
     )
 
-    logger = activity.logger
-
     output_file_extension = os.path.splitext(data.output_file_path)[-1]
     if output_file_extension == '.parquet':
         write_dataset_file = write_parquet_file
@@ -92,11 +90,6 @@ async def search(data: SearchInput) -> SearchOutput:
         output.pagination_next_page_after_value = (
             response.pagination.next_page_after_value
         )
-
-    logger.info(
-        f'Page {response.pagination.page} containing {len(response.data)} results '
-        f'written to output file {data.output_file_path}.'
-    )
 
     return output
 
@@ -165,7 +158,8 @@ async def export_dataset_to_upload(data: ExportDatasetInput) -> str:
             f'{data.metadata.user_input.user_id} not found.'
         )
 
-    zipname = 'exported_entries_' + data.metadata.search_start_time + '.zip'
+    safe_timestamp = data.metadata.search_start_time.replace(':', '-')
+    zipname = 'export_entries_' + safe_timestamp + '.zip'
     zipname = unique_filename(zipname, upload_files)
 
     # Create a zip file containing all the source paths and the metadata file
