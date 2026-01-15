@@ -72,7 +72,7 @@ class ExportEntriesWorkflow:
                 retry_policy=retry_policy,
             )
             if search_output.num_entries > 0:
-                # writing files was skipped in this case
+                # only save paths if the writing files was not skipped
                 generated_file_paths.append(search_input.output_file_path)
             search_start_times.append(search_output.search_start_time)
             search_end_times.append(search_output.search_end_time)
