@@ -69,8 +69,7 @@ async def search(data: SearchInput) -> SearchOutput:
             '.csv, or .json extensions.'
         )
 
-    output = SearchOutput()
-    output.search_start_time = datetime.now(timezone.utc).isoformat()
+    start = datetime.now(timezone.utc).isoformat()
     response = nomad_search(
         user_id=data.user_id,
         owner=data.owner,
@@ -79,12 +78,18 @@ async def search(data: SearchInput) -> SearchOutput:
         pagination=data.pagination,
         aggregations={},  # aggregations support can be added later
     )
-    output.search_end_time = datetime.now(timezone.utc).isoformat()
-    output.num_entries = len(response.data)
+    end = datetime.now(timezone.utc).isoformat()
+    output = SearchOutput(
+        search_start_time=start,
+        search_end_time=end,
+        num_entries=len(response.data),
+    )
 
-    if output.num_entries > 0:
+    if output.num_entries == 0:
         # skip writing empty files
-        write_dataset_file(path=data.output_file_path, data=response.data)
+        return output
+
+    write_dataset_file(path=data.output_file_path, data=response.data)
 
     if response.pagination and response.pagination.next_page_after_value:
         output.pagination_next_page_after_value = (

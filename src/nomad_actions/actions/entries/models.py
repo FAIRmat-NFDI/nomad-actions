@@ -130,19 +130,19 @@ class SearchInput(BaseModel):
 
 
 class SearchOutput(BaseModel):
+    num_entries: int = Field(
+        ..., description='Number of entries in the search results.'
+    )
+    search_start_time: str = Field(
+        ..., description='Timestamp when the search started.'
+    )
+    search_end_time: str = Field(
+        ..., description='Timestamp when the search completed.'
+    )
     pagination_next_page_after_value: str | None = Field(
         None,
         description='The next_page_after_value from pagination, if more results are '
         'available.',
-    )
-    num_entries: int = Field(
-        None, description='Number of entries in the search results.'
-    )
-    search_start_time: str | None = Field(
-        None, description='Timestamp when the search started.'
-    )
-    search_end_time: str | None = Field(
-        None, description='Timestamp when the search completed.'
     )
 
 
