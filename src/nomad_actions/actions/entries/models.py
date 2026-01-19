@@ -135,7 +135,7 @@ class SearchInput(BaseModel):
 
 class SearchOutput(BaseModel):
     num_entries_exported: int = Field(
-        ..., description='Number of entries in the search results.'
+        ..., description='Number of entries exported to the output file.'
     )
     num_entries_available: int = Field(
         ...,
