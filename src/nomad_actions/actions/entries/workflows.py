@@ -75,7 +75,7 @@ class ExportEntriesWorkflow:
                 search,
                 search_input,
                 activity_id=f'search-activity-{search_counter}',
-                start_to_close_timeout=timedelta(hours=2),
+                start_to_close_timeout=timedelta(seconds=config.search_batch_timeout),
                 retry_policy=retry_policy,
             )
             if search_output.num_entries_exported > 0:
