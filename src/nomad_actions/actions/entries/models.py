@@ -175,8 +175,8 @@ class ExportDatasetMetadata(BaseModel):
         description='Total number of entries exported in all the exported dataset '
         'batches.',
     )
-    num_entries_available: int = Field(
-        ...,
+    num_entries_available: int | None = Field(
+        None,
         description='Total number of entries available for the given search query.',
     )
     reached_max_entries: bool = Field(

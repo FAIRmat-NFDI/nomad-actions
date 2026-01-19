@@ -55,6 +55,7 @@ class ExportEntriesWorkflow:
         )
 
         search_counter = 0
+        num_entries_available = None
         generated_file_paths = []
         search_start_times = []
         search_end_times = []
@@ -78,6 +79,9 @@ class ExportEntriesWorkflow:
                 start_to_close_timeout=timedelta(seconds=config.search_batch_timeout),
                 retry_policy=retry_policy,
             )
+            if search_counter == 1:
+                # capture the total available entries from the first search output
+                num_entries_available = search_output.num_entries_available
             if search_output.num_entries_exported > 0:
                 # only save paths if the writing files was not skipped
                 generated_file_paths.append(search_input.output_file_path)
@@ -119,7 +123,7 @@ class ExportEntriesWorkflow:
                 source_paths=generated_file_paths,
                 metadata=ExportDatasetMetadata(
                     num_entries_exported=total_num_entries_exported,
-                    num_entries_available=search_output.num_entries_available,
+                    num_entries_available=num_entries_available,
                     reached_max_entries=reached_max_entries_limit,
                     search_start_time=search_start_times[0]
                     if search_start_times
