@@ -79,22 +79,26 @@ async def search(data: SearchInput) -> SearchOutput:
         aggregations={},  # aggregations support can be added later
     )
     end = datetime.now(timezone.utc).isoformat()
+
+    # Limit the number of exported entries
+    if len(response.data) > data.max_entries_export_limit:
+        entry_list = response.data[: data.max_entries_export_limit]
+    else:
+        entry_list = response.data
+
     output = SearchOutput(
         search_start_time=start,
         search_end_time=end,
-        num_entries=len(response.data),
+        num_entries_exported=len(entry_list),
+        num_entries_available=response.pagination.total,
+        pagination_next_page_after_value=response.pagination.next_page_after_value,
     )
 
-    if output.num_entries == 0:
-        # skip writing empty files
-        return output
-
-    write_dataset_file(path=data.output_file_path, data=response.data)
-
-    if response.pagination and response.pagination.next_page_after_value:
-        output.pagination_next_page_after_value = (
-            response.pagination.next_page_after_value
-        )
+    if len(entry_list) == 0:
+        # skip writing empty files and stop subsequent searches
+        output.pagination_next_page_after_value = None
+    else:
+        write_dataset_file(path=data.output_file_path, data=entry_list)
 
     return output
 
