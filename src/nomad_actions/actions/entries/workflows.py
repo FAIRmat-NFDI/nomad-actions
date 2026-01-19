@@ -94,12 +94,12 @@ class ExportEntriesWorkflow:
             )
             search_input.max_entries_export_limit -= search_output.num_entries_exported
 
+            if search_output.pagination_next_page_after_value is None:
+                # break if there are no more pages to fetch
+                break
             if search_input.max_entries_export_limit <= 0:
                 # break early if the max entries limit has been reached
                 reached_max_entries_limit = True
-                break
-            if search_output.pagination_next_page_after_value is None:
-                # break if there are no more pages to fetch
                 break
 
         if data.output_settings.merge_output_files:
