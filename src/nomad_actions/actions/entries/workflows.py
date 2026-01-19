@@ -4,6 +4,8 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
+    from nomad.config import config as nomad_config
+
     from nomad_actions.actions.entries.activities import (
         cleanup_artifacts,
         create_artifact_subdirectory,
@@ -40,6 +42,9 @@ class ExportEntriesWorkflow:
             initial_interval=timedelta(seconds=10),
             maximum_interval=timedelta(minutes=1),
             backoff_coefficient=2.0,
+        )
+        config = nomad_config.get_plugin_entry_point(
+            'nomad_actions.actions:export_entries_action_entry_point'
         )
 
         artifact_subdirectory = await workflow.execute_activity(
