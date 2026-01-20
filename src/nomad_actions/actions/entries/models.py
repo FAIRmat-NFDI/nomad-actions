@@ -179,7 +179,7 @@ class ExportDatasetMetadata(BaseModel):
         0,
         description='Total number of entries available for the given search query.',
     )
-    reached_max_entries: bool = Field(
+    reached_max_entries_limit: bool = Field(
         False,
         description='Indicates whether the export reached the maximum number of '
         'entries allowed. If true, the exported dataset contains the first N entries '
