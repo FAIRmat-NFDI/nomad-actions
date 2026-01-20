@@ -64,7 +64,7 @@ class ExportEntriesWorkflow:
             )
 
             search_counter = 0
-            num_entries_available = None
+            num_entries_available = 0
             generated_file_paths = []
             search_start_times = []
             search_end_times = []
@@ -143,13 +143,12 @@ class ExportEntriesWorkflow:
                 user_input=data,
             )
 
-        except Exception as e:
+        except Exception:
             # Capture error info to include in metadata
             import traceback
 
             export_dataset_input.metadata.error_info = traceback.format_exc()
-
-            raise e
+            raise
 
         finally:
             saved_dataset_path = await workflow.execute_activity(
