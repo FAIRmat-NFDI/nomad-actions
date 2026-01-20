@@ -27,7 +27,10 @@ async def create_artifact_subdirectory(data: CreateArtifactSubdirectoryInput) ->
 
     subdir_path = os.path.join(action_artifacts_dir(), data.subdir_name)
 
-    assert not os.path.exists(subdir_path)
+    assert not os.path.exists(subdir_path), (
+        f'Artifact subdirectory "{subdir_path}" already exists.'
+    )
+
     os.makedirs(subdir_path)
 
     return subdir_path
