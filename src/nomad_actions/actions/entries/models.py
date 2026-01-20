@@ -204,15 +204,25 @@ class ExportDatasetMetadata(BaseModel):
 
 
 class ExportDatasetInput(BaseModel):
+    user_id: str = Field(
+        ..., description='User ID performing the export dataset operation.'
+    )
+    upload_id: str = Field(
+        ..., description='Upload ID associated with the export dataset operation.'
+    )
     artifact_subdirectory: str = Field(
         ...,
         description='Subdirectory where the exported dataset zip file will be stored.',
     )
+    zipname: str = Field(
+        ...,
+        description='Name of the output zip file for the exported dataset.',
+    )
     source_paths: list[str] = Field(
         ..., description='List of paths to the source files of the dataset.'
     )
-    metadata: ExportDatasetMetadata | None = Field(
-        None, description='Metadata associated with the exported dataset.'
+    metadata: ExportDatasetMetadata = Field(
+        ..., description='Metadata associated with the exported dataset.'
     )
 
 

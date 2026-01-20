@@ -161,18 +161,13 @@ async def export_dataset_to_upload(data: ExportDatasetInput) -> str:
                 return _filename
             count += 1
 
-    upload_files = get_upload_files(
-        data.metadata.user_input.upload_id, data.metadata.user_input.user_id
-    )
+    upload_files = get_upload_files(data.upload_id, data.user_id)
     if not upload_files:
         raise ValueError(
-            f'Upload with ID {data.metadata.user_input.upload_id} for user '
-            f'{data.metadata.user_input.user_id} not found.'
+            f'Upload with ID {data.upload_id} for user {data.user_id} not found.'
         )
 
-    safe_timestamp = data.metadata.search_start_time.replace(':', '-')
-    zipname = 'export_entries_' + safe_timestamp + '.zip'
-    zipname = unique_filename(zipname, upload_files)
+    zipname = unique_filename(data.zipname, upload_files)
 
     metadata_dict = {
         'note': 'This metadata file contains information about the exported dataset '
