@@ -49,6 +49,14 @@ class ExportEntriesWorkflow:
             start_to_close_timeout=timedelta(minutes=10),
             retry_policy=retry_policy,
         )
+        export_dataset_input = ExportDatasetInput(
+            user_id=data.user_id,
+            upload_id=data.upload_id,
+            artifact_subdirectory=artifact_subdirectory,
+            zipname='export_entries_error.zip',  # name used in case of error
+            source_paths=[],
+            metadata=ExportDatasetMetadata(user_input=data),
+        )
 
         try:
             config = nomad_config.get_plugin_entry_point(
@@ -121,38 +129,27 @@ class ExportEntriesWorkflow:
                 if merged_file_path:
                     generated_file_paths = [merged_file_path]
 
-            export_dataset_input = ExportDatasetInput(
-                artifact_subdirectory=artifact_subdirectory,
-                source_paths=generated_file_paths,
-                metadata=ExportDatasetMetadata(
-                    num_entries_exported=total_num_entries_exported,
-                    num_entries_available=num_entries_available,
-                    reached_max_entries=reached_max_entries_limit,
-                    search_start_time=search_start_times[0]
-                    if search_start_times
-                    else '',
-                    search_end_time=search_end_times[-1] if search_end_times else '',
-                    user_input=data,
-                ),
+            # Prepare export dataset input and metadata
+            export_dataset_input.zipname = (
+                'export_entries_' + search_start_times[0].replace(':', '-') + '.zip'
             )
+            export_dataset_input.source_paths = generated_file_paths
+            export_dataset_input.metadata.num_entries_exported = (
+                total_num_entries_exported
+            )
+            export_dataset_input.metadata.num_entries_available = num_entries_available
+            export_dataset_input.metadata.reached_max_entries = (
+                reached_max_entries_limit
+            )
+            export_dataset_input.metadata.search_start_time = search_start_times[0]
+            export_dataset_input.metadata.search_end_time = search_end_times[-1]
 
         except Exception as e:
             # Capture error info to include in metadata
             import traceback
 
-            export_dataset_input = ExportDatasetInput(
-                artifact_subdirectory=artifact_subdirectory,
-                source_paths=[],
-                metadata=ExportDatasetMetadata(
-                    num_entries_exported=0,
-                    num_entries_available=0,
-                    reached_max_entries=False,
-                    search_start_time='',
-                    search_end_time='',
-                    user_input=data,
-                    error_info=traceback.format_exc(),
-                ),
-            )
+            export_dataset_input.metadata.error_info = traceback.format_exc()
+
             raise e
 
         finally:
