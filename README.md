@@ -8,7 +8,7 @@ You can install the plugin using pip:
 pip install nomad-ml-workflows @ git+https://github.com/FAIRmat-NFDI/nomad-ml-workflows.git
 ```
 
-However, to fully utilize the plugin, you need to add it to your NOMAD instance as described [below](#🚀-adding-this-plugin-to-nomad).
+However, to fully utilize the plugin, you need to add it to your NOMAD instance as described [below](#-adding-this-plugin-to-nomad).
 
 ## ✨ Features
 
