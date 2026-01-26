@@ -47,7 +47,7 @@ def write_csv_file(path: str, data: list[dict]):
             Defaults to 'overwrite'.
     """
     if not path.endswith('csv'):
-        raise ValueError('Unsupported file type. Please use CSV.')
+        raise ValueError('Unsupported file type. Please use csv.')
 
     df = dict_to_dataframe(data)
 
@@ -62,20 +62,22 @@ def write_json_file(path: str, data: list[dict]):
         data (list[dict]): The list of NOMAD entry dicts to be written to the file.
     """
     if not path.endswith('json'):
-        raise ValueError('Unsupported file type. Please use JSON.')
+        raise ValueError('Unsupported file type. Please use json.')
 
     with open(path, 'w') as f:
         json.dump(data, f, indent=4)
 
 
-def merge_files(input_file_paths: list[str], output_file_path: str):
+def merge_files(
+    input_file_paths: list[str], output_file_type: str, output_file_path: str
+):
     """Merges multiple Parquet, CSV, or JSON files into a single file.
 
     Args:
         input_file_paths (list[str]): List of file paths to be merged.
         output_file_path (str): Path of the merged output file.
     """
-    if output_file_path.endswith('parquet'):
+    if output_file_type == 'parquet':
         # Creates a logical dataset from the input files, not loading all data into
         # memory. Also, unifies the schema across the files.
         dataset = ds.dataset(input_file_paths, format='parquet')
@@ -91,7 +93,7 @@ def merge_files(input_file_paths: list[str], output_file_path: str):
             for batch in dataset.to_batches():
                 writer.write_batch(batch)
 
-    elif output_file_path.endswith('csv'):
+    elif output_file_type == 'csv':
         dataframes = []
         for file_path in input_file_paths:
             df = pd.read_csv(file_path)
@@ -99,7 +101,7 @@ def merge_files(input_file_paths: list[str], output_file_path: str):
         combined_df = pd.concat(dataframes, ignore_index=True)
         combined_df.to_csv(output_file_path, index=False)
 
-    elif output_file_path.endswith('json'):
+    elif output_file_type == 'json':
         combined_data = []
         for file_path in input_file_paths:
             with open(file_path, encoding='utf-8') as f:
@@ -109,4 +111,4 @@ def merge_files(input_file_paths: list[str], output_file_path: str):
         with open(output_file_path, 'w', encoding='utf-8') as f:
             json.dump(combined_data, f, indent=4)
     else:
-        raise ValueError('Unsupported file type. Please use parquet, CSV, or JSON.')
+        raise ValueError('Unsupported file type. Please use parquet, csv, or json.')

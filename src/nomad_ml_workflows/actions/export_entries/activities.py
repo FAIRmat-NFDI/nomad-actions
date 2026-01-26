@@ -63,17 +63,15 @@ async def search(data: SearchInput) -> SearchOutput:
         SearchOutput: Output data from the search activity.
     """
 
-    output_file_extension = os.path.splitext(data.output_file_path)[-1]
-    if output_file_extension == '.parquet':
-        write_dataset_file = write_parquet_file
-    elif output_file_extension == '.csv':
-        write_dataset_file = write_csv_file
-    elif output_file_extension == '.json':
-        write_dataset_file = write_json_file
-    else:
+    write_dataset_file = {
+        'parquet': write_parquet_file,
+        'csv': write_csv_file,
+        'json': write_json_file,
+    }.get(data.output_file_type)
+    if write_dataset_file is None:
         raise ValueError(
-            f'Unsupported file format "{output_file_extension}". Please use .parquet, '
-            '.csv, or .json extensions.'
+            f'Unsupported file type "{data.output_file_type}". '
+            'Please use parquet, csv, or json as file types.'
         )
 
     start = datetime.now(timezone.utc).isoformat()
@@ -129,7 +127,7 @@ async def merge_output_files(data: MergeOutputFilesInput) -> str | None:
         data.artifact_subdirectory, 'merged.' + data.output_file_type
     )
 
-    merge_files(data.generated_file_paths, merged_file_path)
+    merge_files(data.generated_file_paths, data.output_file_type, merged_file_path)
 
     return merged_file_path
 

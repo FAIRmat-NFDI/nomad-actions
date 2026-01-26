@@ -85,6 +85,9 @@ class SearchInput(BaseModel):
     pagination: MetadataPagination = Field(
         ..., description='Pagination settings for the search results.'
     )
+    output_file_type: OutputFileTypeLiteral = Field(
+        ..., description='Type of the output file.'
+    )
     output_file_path: str = Field(..., description='Path to the generated output file.')
     max_entries_export_limit: int = Field(
         ..., description='Maximum number of entries to be exported.'
@@ -130,6 +133,7 @@ class SearchInput(BaseModel):
             query=query,
             required=required,
             pagination=pagination,
+            output_file_type=user_input.output_settings.output_file_type,
             output_file_path=output_file_path,
             max_entries_export_limit=max_entries_export_limit,
         )
