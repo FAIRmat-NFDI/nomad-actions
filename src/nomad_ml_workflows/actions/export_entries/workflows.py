@@ -39,7 +39,7 @@ class ExportEntriesWorkflow:
             str: Path to the saved dataset in the upload's `raw` folder.
         """
         retry_policy = RetryPolicy(
-            maximum_attempts=3,
+            maximum_attempts=1,
             initial_interval=timedelta(seconds=10),
             maximum_interval=timedelta(minutes=1),
             backoff_coefficient=2.0,
