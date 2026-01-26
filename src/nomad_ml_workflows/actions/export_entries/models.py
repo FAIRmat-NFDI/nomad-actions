@@ -1,4 +1,4 @@
-import ast
+import json
 from typing import Literal
 
 from nomad.app.v1.models.models import MetadataPagination, MetadataRequired, Query
@@ -111,7 +111,7 @@ class SearchInput(BaseModel):
             """
             return field.strip().strip("'").strip('"')
 
-        query = ast.literal_eval(_clean_field(user_input.search_settings.query))
+        query = json.loads(_clean_field(user_input.search_settings.query))
 
         required = MetadataRequired()
         if user_input.search_settings.required_include is not None:
