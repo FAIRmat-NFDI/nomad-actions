@@ -1,7 +1,6 @@
 import json
 import os
 import shutil
-import tempfile
 import zipfile
 from datetime import datetime, timezone
 
@@ -185,17 +184,20 @@ async def export_dataset_to_upload(data: ExportDatasetInput) -> str:
             for filepath in exportable_filepaths:
                 arcname = os.path.basename(filepath)
                 zipf.write(filepath, arcname=arcname)
-        # Upload zip file to the upload_files directory
+        # Add zip file to the NOMAD Upload
         upload_files.add_rawfiles(path=zippath, auto_decompress=False)
         return zipname
 
-    # If not zipping, create a temporary directory to hold the files and upload them
-    with tempfile.TemporaryDirectory() as tempdir:
-        for filepath in exportable_filepaths:
-            temp_path = os.path.join(tempdir, os.path.basename(filepath))
-            shutil.copy2(filepath, temp_path)
-        # Upload files to the upload_files directory
-        upload_files.add_rawfiles(path=tempdir, target_dir=exportable_dir_name)
+    # If not zipping, copy files to directory named exportable_dir_name
+    exportable_dir_path = os.path.join(data.artifact_subdirectory, exportable_dir_name)
+    os.mkdir(exportable_dir_path)
+    for filepath in exportable_filepaths:
+        temp_path = os.path.join(exportable_dir_path, os.path.basename(filepath))
+        shutil.copy2(filepath, temp_path)
+        # Add directory to the NOMAD Upload
+        upload_files.add_rawfiles(
+            path=exportable_dir_path, target_dir=exportable_dir_name
+        )
     return exportable_dir_name
 
 
