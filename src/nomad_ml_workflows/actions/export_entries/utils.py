@@ -1,10 +1,10 @@
 import json
 
-import pandas as pd
 from nomad.utils import dict_to_dataframe
 
 try:
     import pyarrow as pa
+    import pyarrow.csv as pcsv
     import pyarrow.dataset as ds
     import pyarrow.parquet as pq
 except ImportError as e:
@@ -94,12 +94,32 @@ def merge_files(
                 writer.write_batch(batch)
 
     elif output_file_type == 'csv':
-        dataframes = []
-        for file_path in input_file_paths:
-            df = pd.read_csv(file_path)
-            dataframes.append(df)
-        combined_df = pd.concat(dataframes, ignore_index=True)
-        combined_df.to_csv(output_file_path, index=False)
+        # Use custom CSV options to handle timestamp parsing issues
+        convert_options = pcsv.ConvertOptions(
+            timestamp_parsers=[
+                '%Y-%m-%dT%H:%M:%S.%f%z',  # ISO with microseconds and timezone
+                '%Y-%m-%dT%H:%M:%S%z',  # ISO without microseconds
+                '%Y-%m-%d %H:%M:%S',  # Common datetime format
+            ]
+        )
+        # Creates a logical dataset from the input CSV files, not loading all data into
+        # memory. Also, unifies the schema across the files.
+        dataset = ds.dataset(
+            input_file_paths,
+            format=ds.CsvFileFormat(convert_options=convert_options),
+        )
+
+        # Write the dataset to a single CSV file in batches
+        first_batch = True
+        for batch in dataset.to_batches():
+            df = batch.to_pandas()
+            df.to_csv(
+                output_file_path,
+                index=False,
+                mode='w' if first_batch else 'a',
+                header=first_batch,
+            )
+            first_batch = False
 
     elif output_file_type == 'json':
         combined_data = []
