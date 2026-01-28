@@ -97,12 +97,12 @@ def merge_files(
                 writer.write_batch(batch)
 
     elif output_file_type == 'csv':
-        # Use custom CSV options to handle timestamp parsing issues
+        # Additional timestamp parser for ISO with microseconds and timezone with colon
+        # (e.g., 2023-10-05T14:48:00.000000+00:00)
+        # This is used in NOMAD `nomad.metainfo.metainfo.Datetime` serialization
         convert_options = pcsv.ConvertOptions(
             timestamp_parsers=[
-                '%Y-%m-%dT%H:%M:%S.%f%z',  # ISO with microseconds and timezone
-                '%Y-%m-%dT%H:%M:%S%z',  # ISO without microseconds
-                '%Y-%m-%d %H:%M:%S',  # Common datetime format
+                '%Y-%m-%dT%H:%M:%S.%f%z',
             ]
         )
         # Creates a logical dataset from the input CSV files, not loading all data into
