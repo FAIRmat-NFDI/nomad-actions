@@ -7,14 +7,14 @@ from temporalio.exceptions import ApplicationError
 with workflow.unsafe.imports_passed_through():
     from nomad.config import config as nomad_config
 
-    from nomad_ml_workflows.actions.entries.activities import (
+    from nomad_ml_workflows.actions.export_entries.activities import (
         cleanup_artifacts,
         create_artifact_subdirectory,
         export_dataset_to_upload,
         merge_output_files,
         search,
     )
-    from nomad_ml_workflows.actions.entries.models import (
+    from nomad_ml_workflows.actions.export_entries.models import (
         CleanupArtifactsInput,
         CreateArtifactSubdirectoryInput,
         ExportDatasetInput,
@@ -39,7 +39,7 @@ class ExportEntriesWorkflow:
             str: Path to the saved dataset in the upload's `raw` folder.
         """
         retry_policy = RetryPolicy(
-            maximum_attempts=3,
+            maximum_attempts=1,
             initial_interval=timedelta(seconds=10),
             maximum_interval=timedelta(minutes=1),
             backoff_coefficient=2.0,
@@ -62,7 +62,7 @@ class ExportEntriesWorkflow:
 
         try:
             config = nomad_config.get_plugin_entry_point(
-                'nomad_ml_workflows.actions:export_entries_action_entry_point'
+                'nomad_ml_workflows.actions:export_entries'
             )
 
             search_counter = 0

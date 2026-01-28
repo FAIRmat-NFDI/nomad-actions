@@ -1,4 +1,4 @@
-import ast
+import json
 from typing import Literal
 
 from nomad.app.v1.models.models import MetadataPagination, MetadataRequired, Query
@@ -20,12 +20,7 @@ class SearchSettings(BaseModel):
         {
             'entry_type': 'ELNSample'
         }""",
-        # json_schema_extra={
-        #     'ui:widget': 'textarea',  # Explicitly request textarea widget
-        #     'ui:options': {
-        #         'rows': 5  # Optional: control height
-        #     },
-        # },
+        # TODO: add `ui:widget` though `json_schema_extra` after NOMAD UI supports it
     )
     required_include: list[str] = Field(
         None,
@@ -90,6 +85,9 @@ class SearchInput(BaseModel):
     pagination: MetadataPagination = Field(
         ..., description='Pagination settings for the search results.'
     )
+    output_file_type: OutputFileTypeLiteral = Field(
+        ..., description='Type of the output file.'
+    )
     output_file_path: str = Field(..., description='Path to the generated output file.')
     max_entries_export_limit: int = Field(
         ..., description='Maximum number of entries to be exported.'
@@ -111,7 +109,9 @@ class SearchInput(BaseModel):
             """
             return field.strip().strip("'").strip('"')
 
-        query = ast.literal_eval(_clean_field(user_input.search_settings.query))
+        query = json.loads(
+            _clean_field(user_input.search_settings.query).replace("'", '"')
+        )
 
         required = MetadataRequired()
         if user_input.search_settings.required_include is not None:
@@ -135,6 +135,7 @@ class SearchInput(BaseModel):
             query=query,
             required=required,
             pagination=pagination,
+            output_file_type=user_input.output_settings.output_file_type,
             output_file_path=output_file_path,
             max_entries_export_limit=max_entries_export_limit,
         )
