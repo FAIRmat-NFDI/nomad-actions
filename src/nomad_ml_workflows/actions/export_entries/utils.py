@@ -76,6 +76,8 @@ def merge_files(
 
     Args:
         input_file_paths (list[str]): List of file paths to be merged.
+        output_file_type (str): The type of the output file ('parquet', 'csv', or
+            'json').
         output_file_path (str): Path of the merged output file.
     """
     if output_file_type == 'parquet':
