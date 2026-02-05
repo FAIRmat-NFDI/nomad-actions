@@ -117,25 +117,22 @@ class ExportEntriesWorkflow:
                     reached_max_entries_limit = True
                     break
 
-            if data.output_settings.merge_output_files:
-                merged_file_path = await workflow.execute_activity(
-                    merge_output_files,
-                    MergeOutputFilesInput(
-                        artifact_subdirectory=artifact_subdirectory,
-                        output_file_type=data.output_settings.output_file_type,
-                        generated_file_paths=generated_file_paths,
-                    ),
-                    start_to_close_timeout=timedelta(hours=2),
-                    retry_policy=retry_policy,
-                )
-                if merged_file_path:
-                    generated_file_paths = [merged_file_path]
+            merged_file_path = await workflow.execute_activity(
+                merge_output_files,
+                MergeOutputFilesInput(
+                    artifact_subdirectory=artifact_subdirectory,
+                    output_file_type=data.output_settings.output_file_type,
+                    generated_file_paths=generated_file_paths,
+                ),
+                start_to_close_timeout=timedelta(hours=2),
+                retry_policy=retry_policy,
+            )
 
             # Prepare export dataset input and metadata
             export_dataset_input.exportable_dir_name = (
                 'export_entries_' + search_start_times[0].replace(':', '-')
             )
-            export_dataset_input.source_paths = generated_file_paths
+            export_dataset_input.source_paths = [merged_file_path]
             export_dataset_input.metadata = ExportDatasetMetadata(
                 num_entries_exported=total_num_entries_exported,
                 num_entries_available=num_entries_available,
