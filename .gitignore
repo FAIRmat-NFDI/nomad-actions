@@ -128,3 +128,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# memory profiling logs
+memory/logs
+memory/data
