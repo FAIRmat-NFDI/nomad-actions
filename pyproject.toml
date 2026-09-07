@@ -46,6 +46,9 @@ cpu-action = [
     "pyarrow", # for parquet support
     "boto3",   # s3 storage
 ]
+atoms-export = [
+    "nomad-forces-export @  git+https://github.com/FAIRmat-NFDI/nomad-forces-export.git@main"
+]
 
 [tool.uv]
 extra-index-url = [

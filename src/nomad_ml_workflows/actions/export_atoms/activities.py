@@ -4,7 +4,7 @@ from pathlib import Path
 from nomad.actions.manager import action_instance_artifacts_dir
 from nomad.config import config as nomad_config
 from nomad.utils import get_logger
-from nomad_mlip_data.config import REQUIRED_ARCHIVE_DATA
+from nomad_forces_export.config import REQUIRED_ARCHIVE_DATA
 from temporalio import activity
 
 from nomad_ml_workflows.actions.export_atoms.models import (

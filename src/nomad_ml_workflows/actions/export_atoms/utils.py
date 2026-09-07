@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from pathlib import Path
 
-from nomad_mlip_data import atoms_generator, write_atoms
+from nomad_forces_export import atoms_generator, write_atoms
 
 
 def generate_atoms_from_archives(

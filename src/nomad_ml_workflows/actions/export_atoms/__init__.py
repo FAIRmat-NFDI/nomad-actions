@@ -81,6 +81,6 @@ class AtomsExportEntriesActionEntryPoint(ActionEntryPoint):
 
 atoms_export_entries = AtomsExportEntriesActionEntryPoint(  # type: ignore
     name='Atoms Export Entries Action',
-    description='An action to search entries and export them in the specified upload.',
+    description='An action to search entries and export the Forces, Energy, and other properties of the atoms in an ASE-db/extxyz file.',
     task_queue=TaskQueue.CPU,
 )
