@@ -4,6 +4,7 @@ from pathlib import Path
 from nomad.actions.manager import action_instance_artifacts_dir
 from nomad.config import config as nomad_config
 from nomad.utils import get_logger
+
 try:
     from nomad_forces_export.config import REQUIRED_ARCHIVE_DATA
 except ImportError:

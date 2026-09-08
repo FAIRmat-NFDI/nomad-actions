@@ -3,6 +3,7 @@ from typing import Literal
 
 from nomad.app.v1.models.models import Query
 from nomad.config import config as nomad_config
+
 try:
     from nomad_forces_export.config import BASE_QUERY
 except ImportError:
