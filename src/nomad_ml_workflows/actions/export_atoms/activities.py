@@ -4,7 +4,10 @@ from pathlib import Path
 from nomad.actions.manager import action_instance_artifacts_dir
 from nomad.config import config as nomad_config
 from nomad.utils import get_logger
-from nomad_forces_export.config import REQUIRED_ARCHIVE_DATA
+try:
+    from nomad_forces_export.config import REQUIRED_ARCHIVE_DATA
+except ImportError:
+    REQUIRED_ARCHIVE_DATA = {}
 from temporalio import activity
 
 from nomad_ml_workflows.actions.export_atoms.models import (
@@ -42,7 +45,7 @@ def read_archives_and_generate_atoms(
     data: AtomsReadArchivesWorkflowInput,
 ) -> OutputFile:
     """
-    Reads the archives and writes the output JSON file.
+    Reads selected entry archives and writes the exported atoms dataset file (extxyz/ASE DB).
     """
     artifacts_subdirectory = Path(
         action_instance_artifacts_dir(data.export_entries_workflow_id)

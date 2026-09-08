@@ -3,7 +3,10 @@ from typing import Literal
 
 from nomad.app.v1.models.models import Query
 from nomad.config import config as nomad_config
-from nomad_forces_export.config import BASE_QUERY
+try:
+    from nomad_forces_export.config import BASE_QUERY
+except ImportError:
+    BASE_QUERY = {}
 from pydantic import BaseModel, ConfigDict, Field
 
 from nomad_ml_workflows.actions.export_entries.models import (
