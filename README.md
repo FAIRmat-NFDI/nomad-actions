@@ -129,6 +129,22 @@ plugins:
         # and Arrow representations are much larger than their NDJSON bytes.
 ```
 
+For deployments where PyArrow uses the `mimalloc` memory-pool backend, the CPU
+action worker can be started with immediate memory purging enabled:
+
+```sh
+MIMALLOC_PURGE_DELAY=0
+```
+
+The tabular exporter requests that unused Arrow memory be released after every
+batch. Setting the environment variable `MIMALLOC_PURGE_DELAY=0` asks mimalloc
+to return unused pages to the operating system immediately. In local measurements,
+this produced slightly lower post-export RSS.
+
+This setting is optional and must be present in the CPU worker environment before
+the worker starts. Immediate purging may trade some allocation performance for
+lower retained RSS.
+
 ## 🚀 Adding this plugin to NOMAD
 
 ### NOMAD Oasis
