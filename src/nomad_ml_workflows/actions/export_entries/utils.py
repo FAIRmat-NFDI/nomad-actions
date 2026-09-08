@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import importlib
 import json
 from collections import defaultdict
@@ -690,6 +691,12 @@ def _tabular_output_file_format(output_file_path: Path) -> str:
     return output_file_format
 
 
+def _release_unused_arrow_memory(pa: Any) -> None:
+    """Release unreachable Arrow allocations and return unused pool memory."""
+    gc.collect()
+    pa.default_memory_pool().release_unused()
+
+
 def write_table_rows_to_tabular_file(  # noqa: PLR0913
     table_rows_file_path: Path,
     output_file_path: Path,
@@ -738,64 +745,71 @@ def write_table_rows_to_tabular_file(  # noqa: PLR0913
     count = 0
 
     writer = create_tabular_writer(output_file_path, output_schema)
-    with open(table_rows_file_path, 'rb') as input_file, writer:
+    try:
+        with open(table_rows_file_path, 'rb') as input_file, writer:
 
-        def flush_batch() -> None:
-            nonlocal buffered_input_bytes, count  # update from flush
-            if not buffered_rows:
-                return
+            def flush_batch() -> None:
+                nonlocal buffered_input_bytes, count  # update from flush
+                if not buffered_rows:
+                    return
 
-            batch = _table_rows_to_arrow_batch(
-                buffered_rows,
-                column_configs,
-                arrow_schema,
-                logger=logger,
-            )
-            if output_file_format == 'csv':
-                batch = _stringify_nested_columns(batch, output_schema)
-            table = pa.Table.from_batches([batch], schema=output_schema)
-            written_path = writer.write_table(table)
-            if logger:
-                logger.info(
-                    f'Flushed {len(buffered_rows)} rows, '
-                    f'{buffered_input_bytes} bytes to {written_path.name}'
+                batch = _table_rows_to_arrow_batch(
+                    buffered_rows,
+                    column_configs,
+                    arrow_schema,
+                    logger=logger,
                 )
-            count += table.num_rows
-            buffered_rows.clear()
-            buffered_input_bytes = 0
-
-        for line in input_file:
-            row_input_bytes = len(line)
-
-            if buffered_rows and (
-                len(buffered_rows) >= max_buffer_rows
-                or buffered_input_bytes + row_input_bytes > max_buffer_bytes
-            ):
-                flush_batch()
-
-            standard_row = json.loads(line)
-            if not isinstance(standard_row, dict):
-                raise ValueError('Each table row must be a JSON object.')
-            buffered_rows.append(standard_row)
-            buffered_input_bytes += row_input_bytes
-
-            if row_input_bytes > max_buffer_bytes:
+                if output_file_format == 'csv':
+                    batch = _stringify_nested_columns(batch, output_schema)
+                table = pa.Table.from_batches([batch], schema=output_schema)
+                written_path = writer.write_table(table)
                 if logger:
-                    logger.warning(
-                        'Tabular row exceeds the NDJSON input buffer size and '
-                        'will be written immediately.',
-                        entry_id=standard_row.get('entry_id'),
-                        output_file_format=output_file_format,
-                        row_input_bytes=row_input_bytes,
-                        max_buffer_bytes=max_buffer_bytes,
+                    logger.info(
+                        f'Flushed {len(buffered_rows)} rows, '
+                        f'{buffered_input_bytes} bytes to {written_path.name}'
                     )
-                flush_batch()
-            elif (
-                len(buffered_rows) >= max_buffer_rows
-                or buffered_input_bytes >= max_buffer_bytes
-            ):
-                flush_batch()
+                count += table.num_rows
+                buffered_rows.clear()
+                buffered_input_bytes = 0
+                del table, batch
+                _release_unused_arrow_memory(pa)
 
-        flush_batch()
+            for line in input_file:
+                row_input_bytes = len(line)
+
+                if buffered_rows and (
+                    len(buffered_rows) >= max_buffer_rows
+                    or buffered_input_bytes + row_input_bytes > max_buffer_bytes
+                ):
+                    flush_batch()
+
+                standard_row = json.loads(line)
+                if not isinstance(standard_row, dict):
+                    raise ValueError('Each table row must be a JSON object.')
+                buffered_rows.append(standard_row)
+                buffered_input_bytes += row_input_bytes
+
+                if row_input_bytes > max_buffer_bytes:
+                    if logger:
+                        logger.warning(
+                            'Tabular row exceeds the NDJSON input buffer size and '
+                            'will be written immediately.',
+                            entry_id=standard_row.get('entry_id'),
+                            output_file_format=output_file_format,
+                            row_input_bytes=row_input_bytes,
+                            max_buffer_bytes=max_buffer_bytes,
+                        )
+                    flush_batch()
+                elif (
+                    len(buffered_rows) >= max_buffer_rows
+                    or buffered_input_bytes >= max_buffer_bytes
+                ):
+                    flush_batch()
+
+                del line, standard_row
+
+            flush_batch()
+    finally:
+        _release_unused_arrow_memory(pa)
 
     return count
