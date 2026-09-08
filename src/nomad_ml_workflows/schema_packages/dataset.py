@@ -1,7 +1,7 @@
-from nomad.datamodel.data import ArchiveSection, Package, Schema
+from nomad.datamodel.data import ArchiveSection, Schema
 from nomad.datamodel.metainfo.annotations import ELNAnnotation, ELNComponentEnum
 from nomad.datamodel.metainfo.basesections import Entity
-from nomad.metainfo.metainfo import Quantity, Section
+from nomad.metainfo.metainfo import Package, Quantity, Section
 
 m_package = Package(name='Dataset schema')
 
