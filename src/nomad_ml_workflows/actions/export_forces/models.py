@@ -24,9 +24,7 @@ OwnerLiteral = Literal[
 DataFileFormatLiteral = Literal['extxyz', 'ase_db']
 
 
-config = nomad_config.get_plugin_entry_point(
-    'nomad_ml_workflows.actions:export_entries'
-)
+config = nomad_config.get_plugin_entry_point('nomad_ml_workflows.actions:export_forces')
 
 
 def _clean_field(field: str) -> str:
@@ -45,7 +43,7 @@ class IncludeProperties(BaseModel):
     Stresses: bool = Field(False, description='Include stress data.')
 
 
-class AtomsSearchSettings(BaseModel):
+class ForcesSearchSettings(BaseModel):
     owner: OwnerLiteral = Field(
         'visible',
         title='Ownership scope',
@@ -108,7 +106,7 @@ class AtomsSearchSettings(BaseModel):
         return required
 
 
-class AtomsExportSettings(BaseModel):
+class ForcesExportSettings(BaseModel):
     file_format: DataFileFormatLiteral = Field(
         'extxyz',
         title='File format',
@@ -129,7 +127,7 @@ class AtomsExportSettings(BaseModel):
     )
 
 
-class AtomsExportEntriesUserInput(BaseModel):
+class ForcesExportEntriesUserInput(BaseModel):
     model_config = ConfigDict(title='')
 
     user_id: str = Field(
@@ -140,20 +138,20 @@ class AtomsExportEntriesUserInput(BaseModel):
         title='Destination project ID',
         description='ID of the project/upload where the exported artifacts will be saved.',
     )
-    search_settings: AtomsSearchSettings = Field(..., title='Search options')
-    export_settings: AtomsExportSettings = Field(..., title='Export options')
+    search_settings: ForcesSearchSettings = Field(..., title='Search options')
+    export_settings: ForcesExportSettings = Field(..., title='Export options')
 
 
-class AtomsExtractEntriesWorkflowInput(BaseModel):
+class ForcesExtractEntriesWorkflowInput(BaseModel):
     export_entries_workflow_id: str = Field(
         ..., description='ID of the export entries workflow.'
     )
-    user_input: AtomsExportEntriesUserInput = Field(
+    user_input: ForcesExportEntriesUserInput = Field(
         ..., description='Original user input for the export entries workflow.'
     )
 
 
-class AtomsNormalizedSearchSettings(BaseModel):
+class ForcesNormalizedSearchSettings(BaseModel):
     user_id: str = Field(..., description='User ID performing the search.')
     owner: OwnerLiteral = Field(..., description='Owner of the entries to be searched.')
     query: Query = Field(..., description='Search query parameters.')
@@ -164,8 +162,8 @@ class AtomsNormalizedSearchSettings(BaseModel):
     @classmethod
     def from_user_input(
         cls,
-        user_input: AtomsExportEntriesUserInput,
-    ) -> 'AtomsNormalizedSearchSettings':
+        user_input: ForcesExportEntriesUserInput,
+    ) -> 'ForcesNormalizedSearchSettings':
         query = json.loads(
             _clean_field(user_input.search_settings.query).replace("'", '"')
         )
@@ -184,7 +182,7 @@ class AtomsNormalizedSearchSettings(BaseModel):
         )
 
 
-class AtomsReadArchivesWorkflowInput(BaseModel):
+class ForcesCreateExportWorkflowInput(BaseModel):
     export_entries_workflow_id: str = Field(
         ..., description='ID of the export entries workflow.'
     )
@@ -195,17 +193,17 @@ class AtomsReadArchivesWorkflowInput(BaseModel):
     properties: list[str] = Field(..., description='List of required fields.')
 
 
-class AtomsExportDatasetMetadata(ExportDatasetMetadata):
-    user_input: AtomsExportEntriesUserInput | None = Field(
+class ForcesExportDatasetMetadata(ExportDatasetMetadata):
+    user_input: ForcesExportEntriesUserInput | None = Field(
         None, description='Original user input for the export entries workflow.'
     )  # type: ignore[assignment]
 
 
-class AtomsWriteMetadataFileInput(BaseModel):
+class ForcesWriteMetadataFileInput(BaseModel):
     export_entries_workflow_id: str = Field(
         ...,
         description='ID of the export entries workflow.',
     )
-    metadata: AtomsExportDatasetMetadata = Field(
+    metadata: ForcesExportDatasetMetadata = Field(
         ..., description='Metadata to be written to the metadata file.'
     )

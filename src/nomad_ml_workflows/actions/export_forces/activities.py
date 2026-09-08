@@ -11,24 +11,22 @@ except ImportError:
     REQUIRED_ARCHIVE_DATA = {}
 from temporalio import activity
 
-from nomad_ml_workflows.actions.export_atoms.models import (
-    AtomsReadArchivesWorkflowInput,
-    AtomsWriteMetadataFileInput,
-)
-from nomad_ml_workflows.actions.export_atoms.utils import (
-    generate_atoms_from_archives,
-    write_atoms_to_file,
-)
 from nomad_ml_workflows.actions.export_entries.models import (
     ManifestEntry,
     MetadataFile,
     OutputFile,
 )
 from nomad_ml_workflows.actions.export_entries.utils import generate_archives
-
-config = nomad_config.get_plugin_entry_point(
-    'nomad_ml_workflows.actions:export_entries'
+from nomad_ml_workflows.actions.export_forces.models import (
+    ForcesCreateExportWorkflowInput,
+    ForcesWriteMetadataFileInput,
 )
+from nomad_ml_workflows.actions.export_forces.utils import (
+    generate_atoms_from_archives,
+    write_atoms_to_file,
+)
+
+config = nomad_config.get_plugin_entry_point('nomad_ml_workflows.actions:export_forces')
 logger = get_logger(__name__)
 
 DATA_ARTIFACT_NAME = 'data'
@@ -39,11 +37,12 @@ DATA_FILE_EXTENSIONS = {
     'extxyz': 'xyz',
     'ase_db': 'db',
 }
+ACTION_NAME = 'nomad_ml_workflows.actions:export_forces'
 
 
-@activity.defn
-def read_archives_and_generate_atoms(
-    data: AtomsReadArchivesWorkflowInput,
+@activity.defn(name=f'{ACTION_NAME}.read_archives_and_create_export')
+def read_archives_and_create_export(
+    data: ForcesCreateExportWorkflowInput,
 ) -> OutputFile:
     """
     Reads selected entry archives and writes the exported atoms dataset file (extxyz/ASE DB).
@@ -68,20 +67,24 @@ def read_archives_and_generate_atoms(
         manifest, REQUIRED_ARCHIVE_DATA, data.user_id, activity_logger
     )
 
-    atoms = generate_atoms_from_archives(archives, properties=data.properties)
+    atoms_generator = generate_atoms_from_archives(archives, properties=data.properties)
     write_atoms_to_file(
-        atoms, temporary_output_file_path, output_format=data.output_file_format
+        atoms_generator,
+        temporary_output_file_path,
+        output_format=data.output_file_format,
     )
     temporary_output_file_path.replace(output_file_path)
     return OutputFile(
         file_path=output_file_path.as_posix(),
         file_size=output_file_path.stat().st_size,
-        num_entries_exported=len(atoms),
+        num_entries_exported=len(manifest),
     )
 
 
-@activity.defn
-async def atoms_write_metadata_file(data: AtomsWriteMetadataFileInput) -> MetadataFile:
+@activity.defn(name=f'{ACTION_NAME}.write_export_forces_metadata_file')
+async def write_export_forces_metadata_file(
+    data: ForcesWriteMetadataFileInput,
+) -> MetadataFile:
     """Create a metadata.json file in the artifact subdirectory"""
     artifact_subdirectory = Path(
         action_instance_artifacts_dir(data.export_entries_workflow_id)

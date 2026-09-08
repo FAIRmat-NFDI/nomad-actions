@@ -21,13 +21,13 @@ def require_nomad_forces_export() -> tuple[Any, Any]:
 
 def generate_atoms_from_archives(
     archives: Iterable[dict], properties: list[str]
-) -> list:
+) -> Iterable:
     atoms_generator, _ = require_nomad_forces_export()
-    return [atom for atom in atoms_generator(archives, properties=set(properties))]
+    return atoms_generator(archives, properties=set(properties))
 
 
 def write_atoms_to_file(
-    atoms: list, output_file_path: str | Path, output_format: str = 'extxyz'
+    atoms: Iterable, output_file_path: str | Path, output_format: str = 'extxyz'
 ) -> None:
     _, write_atoms = require_nomad_forces_export()
     write_atoms(atoms, output_path=output_file_path, output_format=output_format)

@@ -8,18 +8,6 @@ with workflow.unsafe.imports_passed_through():
     from nomad.config import config as nomad_config
 
     from nomad_ml_workflows import __version__ as nomad_ml_workflows_version
-    from nomad_ml_workflows.actions.export_atoms.activities import (
-        atoms_write_metadata_file,
-        read_archives_and_generate_atoms,
-    )
-    from nomad_ml_workflows.actions.export_atoms.models import (
-        AtomsExportDatasetMetadata,
-        AtomsExportEntriesUserInput,
-        AtomsExtractEntriesWorkflowInput,
-        AtomsNormalizedSearchSettings,
-        AtomsReadArchivesWorkflowInput,
-        AtomsWriteMetadataFileInput,
-    )
     from nomad_ml_workflows.actions.export_entries.activities import (
         cleanup_artifacts,
         export_dataset_to_upload,
@@ -33,41 +21,51 @@ with workflow.unsafe.imports_passed_through():
         OutputFile,
         PrepareManifestInput,
     )
+    from nomad_ml_workflows.actions.export_forces.activities import (
+        read_archives_and_create_export,
+        write_export_forces_metadata_file,
+    )
+    from nomad_ml_workflows.actions.export_forces.models import (
+        ForcesCreateExportWorkflowInput,
+        ForcesExportDatasetMetadata,
+        ForcesExportEntriesUserInput,
+        ForcesExtractEntriesWorkflowInput,
+        ForcesNormalizedSearchSettings,
+        ForcesWriteMetadataFileInput,
+    )
 
-config = nomad_config.get_plugin_entry_point(
-    'nomad_ml_workflows.actions:export_entries'
-)
+config = nomad_config.get_plugin_entry_point('nomad_ml_workflows.actions:export_forces')
 
 
 @workflow.defn
-class AtomsReadArchivesWorkflow:
+class ForcesCreateExportWorkflow:
     """
     Child workflow that reads archives and writes the output artifact.
     """
 
     @workflow.run
-    async def run(self, data: AtomsReadArchivesWorkflowInput) -> OutputFile:
+    async def run(self, data: ForcesCreateExportWorkflowInput) -> OutputFile:
         retry_policy = RetryPolicy(maximum_attempts=1)
         return await workflow.execute_activity(
-            read_archives_and_generate_atoms,
+            read_archives_and_create_export,
             data,
-            start_to_close_timeout=timedelta(seconds=config.read_archives_timeout),  # type: ignore
+            start_to_close_timeout=timedelta(seconds=config.export_archives_timeout),  # type: ignore
             retry_policy=retry_policy,
         )
 
 
 @workflow.defn
-class AtomsExtractEntriesWorkflow:
+class ForcesExtractEntriesWorkflow:
     @workflow.run
     async def run(
-        self, data: AtomsExtractEntriesWorkflowInput
+        self, data: ForcesExtractEntriesWorkflowInput
     ) -> ExtractEntriesWorkflowOutput:
         """
         Find matching entries and write their archives to action artifact subdirectory.
         """
         retry_policy = RetryPolicy(maximum_attempts=1)
         user_input = data.user_input
-        metadata = AtomsExportDatasetMetadata(
+        metadata = ForcesExportDatasetMetadata(
             user_input=user_input,
             nomad_deployment_api_host=nomad_config.services.api_host,
             nomad_version=nomad_config.meta.version,
@@ -76,7 +74,7 @@ class AtomsExtractEntriesWorkflow:
         workflow_output = ExtractEntriesWorkflowOutput()  # type: ignore
 
         try:
-            search_settings = AtomsNormalizedSearchSettings.from_user_input(user_input)
+            search_settings = ForcesNormalizedSearchSettings.from_user_input(user_input)
             manifest_output = await workflow.execute_activity(
                 prepare_manifest,
                 PrepareManifestInput(
@@ -101,8 +99,8 @@ class AtomsExtractEntriesWorkflow:
 
             if manifest_output.num_entries_selected > 0:
                 output_file: OutputFile = await workflow.execute_child_workflow(
-                    AtomsReadArchivesWorkflow.run,
-                    AtomsReadArchivesWorkflowInput(
+                    ForcesCreateExportWorkflow.run,
+                    ForcesCreateExportWorkflowInput(
                         export_entries_workflow_id=data.export_entries_workflow_id,
                         user_id=user_input.user_id,
                         output_file_format=user_input.export_settings.file_format,
@@ -128,8 +126,8 @@ class AtomsExtractEntriesWorkflow:
 
         finally:
             metadata_file = await workflow.execute_activity(
-                atoms_write_metadata_file,
-                AtomsWriteMetadataFileInput(
+                write_export_forces_metadata_file,
+                ForcesWriteMetadataFileInput(
                     export_entries_workflow_id=data.export_entries_workflow_id,
                     metadata=metadata,
                 ),
@@ -142,9 +140,9 @@ class AtomsExtractEntriesWorkflow:
 
 
 @workflow.defn
-class AtomsExportEntriesWorkflow:
+class ForcesExportEntriesWorkflow:
     @workflow.run
-    async def run(self, data: AtomsExportEntriesUserInput) -> ExportEntriesOutput:
+    async def run(self, data: ForcesExportEntriesUserInput) -> ExportEntriesOutput:
         """
         Extract matching entries and export the generated files to an upload.
         """
@@ -153,8 +151,8 @@ class AtomsExportEntriesWorkflow:
 
         try:
             await workflow.execute_child_workflow(
-                AtomsExtractEntriesWorkflow.run,
-                AtomsExtractEntriesWorkflowInput(
+                ForcesExtractEntriesWorkflow.run,
+                ForcesExtractEntriesWorkflowInput(
                     export_entries_workflow_id=workflow.info().workflow_id,
                     user_input=data,
                 ),
