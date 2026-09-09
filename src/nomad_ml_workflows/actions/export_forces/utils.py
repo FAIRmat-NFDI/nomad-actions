@@ -14,7 +14,7 @@ def require_nomad_forces_export() -> tuple[Any, Any]:
     except ImportError as e:
         raise ImportError(
             'nomad-forces-export is required. Install with: '
-            'pip install nomad-ml-workflows[atoms-export]'
+            'pip install nomad-ml-workflows[cpu]'
         ) from e
     return atoms_generator, write_atoms
 
