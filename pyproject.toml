@@ -50,6 +50,7 @@ dev = [
 cpu-action = [
     "pyarrow", # for parquet support
     "boto3",   # s3 storage
+    "nomad-forces-export @  git+https://github.com/FAIRmat-NFDI/nomad-forces-export@action",
 ]
 
 [tool.uv]
@@ -145,5 +146,6 @@ skip = [".github/*"]
 [project.entry-points.'nomad.plugin']
 export_entries_action_entry_point = "nomad_ml_workflows.actions:export_entries"
 export_remote_entries_action_entry_point = "nomad_ml_workflows.actions:export_remote_entries"
+export_forces_action_entry_point = "nomad_ml_workflows.actions:export_forces"
 dataset_schema = "nomad_ml_workflows.schema_packages:dataset_schema"
 model_schema = "nomad_ml_workflows.schema_packages:model_schema"
